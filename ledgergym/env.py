@@ -24,8 +24,10 @@ from .tools import TOOL_SPECS, ERPTools, ToolResult
 
 
 class LedgerEnv:
-    def __init__(self, task_dir: str | Path, max_tool_calls: int = 6, run_dir: str | Path | None = None):
+    def __init__(self, task_dir: str | Path, max_tool_calls: int = 6, run_dir: str | Path | None = None,
+                 prompt_variant: str = "base"):
         self.task_dir = Path(task_dir)
+        self.prompt_variant = prompt_variant
         self.meta = json.loads((self.task_dir / "task.json").read_text())
         self.max_tool_calls = max_tool_calls
         self._run_dir_arg = run_dir
@@ -59,7 +61,7 @@ class LedgerEnv:
             "SELECT invoice_id, doc_id FROM invoices WHERE status='pending' ORDER BY invoice_id")]
         self.calls, self.done, self.trajectory, self.final_text = 0, False, [], None
         return {"task_id": self.meta["task_id"],
-                "system": system_prompt(self.max_tool_calls),
+                "system": system_prompt(self.max_tool_calls, self.prompt_variant),
                 "user": task_prompt(self.meta["base_date"], pending),
                 "tools": TOOL_SPECS,
                 "pending": pending}
@@ -76,6 +78,13 @@ class LedgerEnv:
         self.trajectory.append({"step": self.calls, "tool": name, "args": args,
                                 "ok": res.ok, "mutated": res.mutated, "result": res.text})
         return res
+
+    def pending_ids(self) -> list[str]:
+        """Invoices still pending in this episode (used by the harness to nudge, never by the verifier)."""
+        if self.tools is None:
+            return []
+        return [r[0] for r in self.tools.conn.execute(
+            "SELECT invoice_id FROM invoices WHERE status='pending' ORDER BY invoice_id")]
 
     def finish(self, final_text: str = "") -> Path:
         """End the episode (agent stopped or budget ran out). Returns the final DB path."""

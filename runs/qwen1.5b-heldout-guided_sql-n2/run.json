@@ -1,0 +1,26 @@
+{
+  "model": "qwen1.5b",
+  "model_name": null,
+  "base_url": null,
+  "rpm": null,
+  "rpd": null,
+  "tasks": "data/tasks",
+  "split": "heldout",
+  "tiers": "easy,medium,hard",
+  "limit": 3,
+  "samples": 1,
+  "temperature": 0.0,
+  "max_tokens": 512,
+  "prompt": "guided_sql",
+  "nudges": 2,
+  "max_tool_calls": 6,
+  "runs_dir": "runs",
+  "run_name": null,
+  "preset": {
+    "base_url": "http://localhost:11434/v1",
+    "model": "ledger-qwen1.5b",
+    "api_key_env": null,
+    "rpm": null,
+    "rpd": null
+  }
+}

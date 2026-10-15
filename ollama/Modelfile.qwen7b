@@ -1,0 +1,4 @@
+FROM qwen2.5:7b
+# Ollama's default context window is too small for our prompts (policy + schema +
+# documents + query results) and it truncates silently. 16k fits a hard-tier episode.
+PARAMETER num_ctx 16384
